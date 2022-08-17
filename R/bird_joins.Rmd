@@ -1,0 +1,108 @@
+---
+title: "bird_joins"
+author: "Kiran Favre"
+date: "2022-08-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+```
+
+# Task 1
+
+### Create birds_subset
+
+```{r}
+#load in all data
+bird_observations <- read_csv(here("data","52_pp52_birds_1.csv"))
+
+sites <- read_csv(here("data","52_pp52_sites_1.csv"))
+
+surveys <- read_csv(here("data", "52_pp52_surveys_1.csv"))
+
+taxalist <- read_csv(here("data", "52_pp52_taxalist_1.csv"))
+```
+
+```{r}
+bird_subset <- bird_observations |> 
+  filter(species_id %in% c("BHCO", "RWBL")) |> 
+  filter(site_id %in% c("LI-W", "NU-C"))
+```
+
+### Left join practice
+
+```{r}
+# z <- left_join(x, y, by ="") |> 
+# left_join ()
+
+birds_left <- bird_subset |> 
+  left_join(sites, by = "site_id") |> 
+  left_join(taxalist, by = "species_id")
+
+
+
+#what i tried first:
+
+#birds_left_site <- bird_subset |> 
+  #left_join(bird_subset, sites, by = "site_id") 
+
+#birds_left_taxalist <- bird_subset |> 
+  #left_join(bird_subset, taxalist, by = "species_id")
+
+#birds_left <- left_join(birds_left_site, birds_left_taxalist, by = "survey_id.x")
+```
+
+### Full join practice
+
+```{r}
+birds_full <- bird_subset |> 
+  full_join(sites, by = "site_id")
+```
+
+### Inner join practice 
+
+```{r}
+birds_inner <- bird_subset |> 
+  inner_join(taxalist, by = "species_id")
+```
+
+# Task 2
+
+```{r}
+library(lubridate)
+```
+
+```{r}
+bird_df <- bird_subset |> 
+rename(bird_obs_notes = "notes") |> 
+  left_join(sites) |> 
+  left_join(taxalist) |> 
+  left_join(surveys) |>
+  select(survey_date, common_name, park_name, bird_count)
+
+
+```
+
+```{r}
+#use lubridate::month() to add a new column names survey_month
+bird_df <- bird_df |> 
+  mutate(survey_month = month(survey_date)) |> 
+  mutate(as.numeric(survey_month)) |> 
+  relocate(survey_date, survey_month) |> 
+  group_by(park_name, survey_month)
+
+```
+
+```{r}
+#Find total park and survey month, then group
+
+bird_park_survey <- bird_df |> 
+  group_by(park_name, survey_month) |> 
+  summarize(total_birds = sum(bird_count, na.rm = TRUE)) |> 
+  filter(park_name %in% c('Lindo', "Orme", "Palomino", "Sonrisa"))
+```
+
+# Task 3
