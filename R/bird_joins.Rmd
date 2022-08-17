@@ -62,7 +62,7 @@ birds_full <- bird_subset |>
   full_join(sites, by = "site_id")
 ```
 
-### Inner join practice 
+### Inner join practice
 
 ```{r}
 birds_inner <- bird_subset |> 
